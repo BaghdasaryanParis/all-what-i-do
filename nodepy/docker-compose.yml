@@ -1,0 +1,11 @@
+version: "3.9"
+services:
+  node-app:
+    image: baghdasaryanparis/nodepy:nodeapp
+    ports:
+      - "3000:3000"
+
+  python-app:
+    image: baghdasaryanparis/py:server
+    ports:
+      - "8000:8000"

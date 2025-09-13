@@ -1,0 +1,18 @@
+# 1. Используем официальный Python образ
+FROM python:3.11-slim
+
+# 2. Устанавливаем рабочую директорию
+WORKDIR /app
+
+# 3. Копируем зависимости
+COPY requirements.txt .
+
+# 4. Устанавливаем зависимости
+RUN pip install --no-cache-dir -r requirements.txt
+
+# 5. Копируем всё приложение
+COPY . .
+
+# 6. Запускаем Gunicorn
+CMD ["gunicorn", "--workers", "4", "--bind", "0.0.0.0:5000", "app:app"]
+EXPOSE 5000

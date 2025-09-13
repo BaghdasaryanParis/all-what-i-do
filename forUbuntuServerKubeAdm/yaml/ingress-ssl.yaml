@@ -1,0 +1,36 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress
+  annotations:
+    cert-manager.io/issuer: "letsencrypt-staging"  # Или cluster-issuer, если ты используешь ClusterIssuer
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+      - node.paris.devtools.digital
+    secretName: secret-tls
+  - hosts:
+      - py.paris.devtools.digital
+    secretName: secret2-tls
+  rules:
+  - host: node.paris.devtools.digital
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/"
+        backend:
+          service:
+            name: nodeservice
+            port: 
+              number: 80
+  - host: py.paris.devtools.digital
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/"
+        backend:
+          service:
+            name: pyservice
+            port: 
+              number: 80

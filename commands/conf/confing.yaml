@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+data:
+  port1: "8080"
+  port2: "9090"
+  appName: "first"

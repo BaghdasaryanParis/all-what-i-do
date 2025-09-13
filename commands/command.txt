@@ -1,0 +1,28 @@
+docker run my-docker-image -p 3000:8000   // 
+my-docker-image  -- anun 
+-p  -- port 
+3000:8000 --  3000 containeri port   8000 - hosti port
+docker-compose run --build  // ashxatacnel     ete chka stexcel 
+docker ps -a   // nayel dockeri containery
+docker rm container-name   // jnjel
+docker stop  container-name   // 
+
+minikube start || run   // stexcel virtual machine  vory ka nerbernac orinak docker ev stexcel kubernetesi container
+kubectl get pods  // podery stanal
+minikube ssh  // ssh  ov mianal kontainerin  
+minikube ip // stanal ip 
+minikube kubectl -- get pods --namespace kube-system // stanal bolor podery  
+kubectl describe pod my-nginx-pod // info  podi masin vori anuny   my-nginx-pod anunov
+kubectl run my-nginx-pod --image=nginx // stecxcel pod my-nginx-pod anunov   imagey nginxi
+minikube kubectl get nodes  // stanal nodery
+
+deploymant service configmak
+
+kubectl proxy // vor karoxanam mtnel dashboard 
+http://localhost:8001/api/v1/namespaces/kubernetes-dashboard/services/https:kubernetes-dashboard:/proxy/#/log/default/nodeminiserver/pod?namespace=default&container=node
+// esel dashboardi linky 
+kubectl get secret dashboard-admin-secret -n kubernetes-dashboard -o jsonpath="{.data.token}" | base64 --decode
+// secreti hamar vor dashboard mtnem
+
+
+

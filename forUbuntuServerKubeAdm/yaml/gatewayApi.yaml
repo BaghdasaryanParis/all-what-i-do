@@ -1,0 +1,111 @@
+# gateway.yaml
+
+apiVersion: gateway.networking.k8s.io/v1
+kind: GatewayClass
+metadata:
+  name: nginx
+  namespace: default
+spec:
+  controllerName: ggateway.nginx.org/nginx-gateway-controller
+  parametersRef:
+    group: gateway.networking.k8s.io
+    name: nginx-gateway-params
+    kind: ConfigMap
+    namespace: default
+
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: app-gateway
+  namespace: default
+spec:
+  gatewayClassName: nginx         # Убедитесь, что у вас есть GatewayClass "nginx"
+  listeners:
+    - name: http
+      protocol: HTTP
+      port: 80
+      allowedRoutes:
+        namespaces:
+          from: All
+    - name: https
+      protocol: HTTPS
+      port: 443
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: secret-tls     # Сюда cert-manager положит ваш сертификат
+          
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: proxy-route
+  namespace: default
+spec:
+  parentRefs:
+    - name: app-gateway
+  hostnames:
+    - node.paris.devtools.digital
+    - py.paris.devtools.digital
+  rules:
+    - matches:
+      - path:
+          type: PathPrefix
+          value: /
+      filters:
+      - type: RequestRedirect
+        requestRedirect:
+          port: 8080
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: my-app-route
+  namespace: default
+spec:
+  parentRefs:
+    - name: app-gateway
+  hostnames:
+    - node.paris.devtools.digital
+    - py.paris.devtools.digital
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /.well-known/acme-challenge/
+      backendRefs:
+        - name: cm-acme-http-solver-85jlz
+          port: 8089
+        - name: cm-acme-http-solver-msxp9
+          port: 8089
+
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: nodeservice
+          port: 80
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: pyservice
+          port: 80
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: secret-tls
+  namespace: default
+spec:
+  secretName: secret-tls
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  commonName: node.paris.devtools.digital
+  dnsNames:
+    - node.paris.devtools.digital
+    - py.paris.devtools.digital

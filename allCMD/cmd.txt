@@ -1,0 +1,25 @@
+sudo netplan try
+sudo netplan apply
+ip addr show enp3s0
+ip route
+
+# for new user
+
+sudo adduser rocketchat
+sudo mkdir -p /home/rocketchat/.ssh
+sudo cp home/k8s/.ssh/authorized_keys home/rocketchat/.ssh/authorized_keys
+sudo chown -R rocketchat:rocketchat /home/rocketchat/.ssh
+sudo chmod 700 /home/rocketchat/.ssh
+sudo chmod 600 /home/rocketchat/.ssh/*
+sudo usermod -aG sudo rocketchat
+
+grep '^sudo:' /etc/group
+# sudo:x:27:k8s,rocketchat
+sudo pkill -u k8s
+sudo userdel k8s
+
+# if in /etc/group have last user 
+sudo vim /etc/group
+# delete it
+
+sudo rm -f /var/mail/k8s

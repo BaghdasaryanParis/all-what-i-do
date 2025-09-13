@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: py
+  labels:
+    name: py
+spec:
+  containers:
+  - name: py
+    image: baghdasaryanparis/py:latest
+    ports:
+      - containerPort: 5000
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: node
+  labels:
+    name: node
+spec:
+  containers:
+  - name: node
+    image: baghdasaryanparis/node:latest
+    ports:
+      - containerPort: 3000

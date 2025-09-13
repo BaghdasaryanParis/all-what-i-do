@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "@elastic/elasticsearch": "^8.19.0",
+    "https": "^1.0.0",
+    "node-fetch": "^2.7.0"
+  }
+}

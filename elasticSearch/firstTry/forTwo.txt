@@ -1,0 +1,28 @@
+PUT _ilm/policy/my-polycy-name
+{
+    "policy":{
+        "phases":{
+            "hot":{
+                "min_age":"1m"
+                "actions":{
+                    "rollover":{
+                        "max_age":"3m",
+                        "max_size":"20mb"
+                    }
+                }
+            },
+            "warm":{
+                "min_age":"5m"
+                "actions":{
+                    "forcemerge": { "max_num_segments": 4 },
+                }
+            },
+            "delete":{
+                "min_age":"20m"
+                "actions":{
+                    "delete":{}
+                }
+            },
+        }
+    }
+}

@@ -1,0 +1,107 @@
+volumes:
+  mongodb_data: { driver: local }
+  traefik: { driver: local }
+  mongo1data: {driver: local}
+  mongo2data: {driver: local}
+  mongo3data: {driver: local}
+networks:
+  rocketchat_network:
+    driver: bridge
+services:
+  rocketchat:
+    image: ${IMAGE:-registry.rocket.chat/rocketchat/rocket.chat}:${RELEASE:-latest}
+    restart: always
+    environment:
+      MONGO_URL: mongodb://mongo1:27017,mongo2:27017,mongo3:27017/rocketchat?replicaSet=rs0
+      MONGO_OPLOG_URL: mongodb://mongo1:27017/local?replicaSet=rs0
+      ROOT_URL: ${ROOT_URL:-https://chat.aft}
+      PORT: ${PORT:-3000}
+      DEPLOY_METHOD: docker
+    depends_on:
+      - mongo1
+      - mongo2
+      - mongo3
+      - mongoinit
+    expose:
+      - 3000
+    networks:
+      - rocketchat_network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.rocketchat.rule=Host(`chat.aft`)"
+      - "traefik.http.routers.rocketchat.entrypoints=https"
+      - "traefik.http.routers.rocketchat.tls.certresolver=le"
+      - "traefik.http.services.rocketchat.loadbalancer.server.port=3000"
+  mongo1:
+    image: mongo:6.0
+    container_name: mongo1
+    command: ["--replSet", "rs0", "--bind_ip_all"]
+    volumes:
+      - mongo1data:/data/db
+    ports:
+      - "27017:27017"
+    networks:
+      - rocketchat_network
+  mongo2:
+    image: mongo:6.0
+    container_name: mongo2
+    command: ["--replSet", "rs0", "--bind_ip_all"]
+    volumes:
+      - mongo2data:/data/db
+    networks:
+      - rocketchat_network
+
+  mongo3:
+    image: mongo:6.0
+    container_name: mongo3
+    command: ["--replSet", "rs0", "--bind_ip_all"]
+    volumes:
+      - mongo3data:/data/db
+    networks:
+      - rocketchat_network
+  mongoinit:
+    image: mongo:6.0
+    depends_on:
+      - mongo1
+      - mongo2
+      - mongo3
+    entrypoint: >
+      bash -c '
+      sleep 5;
+      echo "Initiating replica set...";
+      mongosh --host mongo1 --eval "
+        rs.initiate({
+          _id: \"rs0\",
+          members: [
+            { _id: 0, host: \"mongo1:27017\" },
+            { _id: 1, host: \"mongo2:27017\" },
+            { _id: 2, host: \"mongo3:27017\" }
+          ]
+        })
+      ";
+      sleep 5;
+      '
+    networks:
+      - rocketchat_network
+  traefik:
+    image: docker.io/traefik:${TRAEFIK_RELEASE:-v2.9.8}
+    restart: always
+    command:
+     - --api.insecure=false
+     - --providers.docker=true
+     - --providers.docker.exposedbydefault=false
+     - --entrypoints.web.address=:80
+     - --entrypoints.web.http.redirections.entryPoint.to=https
+     - --entrypoints.web.http.redirections.entryPoint.scheme=https
+     - --entrypoints.https.address=:443
+     - --certificatesresolvers.le.acme.tlschallenge=true
+     - --certificatesresolvers.le.acme.email=${LETSENCRYPT_EMAIL:-paris.baghdasaryan@gmail.com}
+     - --certificatesresolvers.le.acme.storage=/letsencrypt/acme.json
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - traefik:/letsencrypt:rw
+      - /run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - rocketchat_network

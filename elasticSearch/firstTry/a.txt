@@ -1,0 +1,6 @@
+207c0gEX8l9ZdVeXi0Nu80Q7
+
+# longhorn storage class 
+kubectl apply -f https://raw.githubusercontent.com/longhorn/longhorn/master/deploy/longhorn.yaml
+# elastic password know 
+kubectl get secret quickstart-es-elastic-user -o jsonpath="{.data.elastic}" | base64 --decode
